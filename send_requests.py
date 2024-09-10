@@ -4,7 +4,7 @@ import time
 import pandas as pd
 
 # Lee los dominios desde un archivo CSV tomando la primera columna sin importar su nombre
-domains_df = pd.read_csv('3rd_lev_domains.csv', header=0)
+domains_df = pd.read_csv('/mnt/c/Users/jabit0g23/Desktop/3rd_lev_domains.csv', header=0)
 domains = domains_df.iloc[:, 0].tolist()  # Toma la primera columna sin importar el nombre
 
 # Lista de dominios conocidos

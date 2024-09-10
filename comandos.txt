@@ -1,4 +1,4 @@
-docker exec -it e9bdc1d978d4 redis-cli
+docker exec -it 32a0e864f26e redis-cli
 docker exec -it 9d19355df76a redis-cli FLUSHALL
 KEYS *
 
