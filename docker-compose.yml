@@ -62,6 +62,19 @@ services:
       - redis2
       - redis3
 
+  redis-cluster-init:
+    image: bitnami/redis:latest
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+    networks:
+      - redisn
+    entrypoint: [
+      "sh", "-c", 
+      "sleep 5 && redis-cli --cluster create 192.168.16.2:6379 192.168.16.3:6379 192.168.16.4:6379 --cluster-replicas 0 --cluster-yes"
+    ]
+
 volumes:
   redis_data_1:
     driver: local
@@ -70,3 +83,4 @@ volumes:
   redis_data_3:
     driver: local
   redis-insight:
+    driver: local
