@@ -1,0 +1,72 @@
+version: '3.8'
+
+networks:
+  redisn:
+    driver: bridge
+
+services:
+  redis1:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-1
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_1:/bitnami/redis/data
+    networks: 
+      - redisn
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "/bitnami/redis/nodes.conf", "--port", "6379", "--protected-mode", "no"]
+
+  redis2:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-2
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data_2:/bitnami/redis/data
+    networks: 
+      - redisn
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "/bitnami/redis/nodes.conf", "--port", "6379", "--protected-mode", "no"]
+
+  redis3:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-3
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data_3:/bitnami/redis/data
+    networks: 
+      - redisn
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "/bitnami/redis/nodes.conf", "--port", "6379", "--protected-mode", "no"]
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    restart: always
+    container_name: redis-insight
+    volumes: 
+      - redis-insight:/data
+    ports:
+      - "5540:5540" 
+    networks: 
+      - redisn
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+
+volumes:
+  redis_data_1:
+    driver: local
+  redis_data_2:
+    driver: local
+  redis_data_3:
+    driver: local
+  redis-insight:

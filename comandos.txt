@@ -1,0 +1,24 @@
+docker exec -it e9bdc1d978d4 redis-cli
+docker exec -it 9d19355df76a redis-cli FLUSHALL
+KEYS *
+
+crear la network:
+docker network create redisn
+
+levantar el contenedor:
+docker-compose up -d
+
+Desactivar el modo protegido en cada servidor Redis: (yo tengo 3 pero teni que cambiarle el nombre segun lo tengas tu y segun la cantidad)
+docker exec -it redis-server-1 redis-cli CONFIG SET protected-mode no
+docker exec -it redis-server-2 redis-cli CONFIG SET protected-mode no
+docker exec -it redis-server-3 redis-cli CONFIG SET protected-mode no
+
+docker network connect redisn redis-server-1
+docker network connect redisn redis-server-2
+docker network connect redisn redis-server-3
+
+ver que esten conectados:
+docker network inspect redisn
+
+Crear el clúster de Redis:
+docker exec -it redis-server-1 redis-cli --cluster create 192.168.16.2:6379 192.168.16.3:6379 192.168.16.4:6379 --cluster-replicas 0
