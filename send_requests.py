@@ -1,44 +1,41 @@
 import requests
 import random
-import time
 import pandas as pd
+import time
 
-# Lee los dominios desde un archivo CSV tomando la primera columna sin importar su nombre
-domains_df = pd.read_csv('/mnt/c/Users/jabit0g23/Desktop/3rd_lev_domains.csv', header=0)
-domains = domains_df.iloc[:, 0].tolist()  # Toma la primera columna sin importar el nombre
-
-# Lista de dominios conocidos
-
-"""
-domains = [
-    'google.com', 'youtube.com', 'facebook.com', 'amazon.com', 'wikipedia.org', 'twitter.com', 
-    'instagram.com', 'linkedin.com', 'apple.com', 'microsoft.com', 'netflix.com', 'reddit.com',
-    'whatsapp.com', 'pinterest.com', 'yahoo.com', 'ebay.com', 'bing.com', 'paypal.com',
-    'twitch.tv', 'weather.com', 'cnn.com', 'bbc.com', 'nytimes.com', 'espn.com', 
-    'booking.com', 'dropbox.com', 'zoom.us', 'salesforce.com', 'spotify.com', 'adobe.com',
-    'quora.com', 'medium.com', 'github.com', 'stackoverflow.com', 'etsy.com', 'aliexpress.com',
-    'tesla.com', 'hulu.com', 'disneyplus.com', 'vimeo.com', 'airbnb.com', 'uber.com', 
-    'lyft.com', 'target.com', 'walmart.com', 'homedepot.com', 'ikea.com', 'nasa.gov',
-    'forbes.com', 'businessinsider.com', 'bloomberg.com', 'fifa.com', 'nba.com', 
-    'kickstarter.com', 'coursera.org', 'udemy.com', 'edx.org', 'khanacademy.org', 
-    'bbc.co.uk', 'guardian.co.uk', 'wired.com', 'reuters.com', 'buzzfeed.com', 'vice.com',
-    'tumblr.com', 'wordpress.com', 'tiktok.com', 'slack.com', 'zoom.com', 'mailchimp.com'
-]
-"""
-
-# URL de la API Flask
+# Define la URL de la API Flask
 api_url = 'http://localhost:5001/dns'
 
+# Lee las primeras filas para determinar el tamaño del archivo sin cargarlo completamente en memoria
+row_count = sum(1 for row in open('3rd_lev_domains_sample.csv'))  # No restamos porque no hay encabezado
 
-while True:
-    # Selecciona un dominio aleatorio
-    domain = random.choice(domains)
+# Ajusta el tamaño de la muestra para que no exceda el número total de filas
+sample_size = min(20000, row_count)
+
+# Lee una muestra aleatoria de filas desde el archivo CSV sin encabezado y asigna un nombre a la columna
+domains_df = pd.read_csv('3rd_lev_domains_sample.csv', header=None, names=['domain'])
+
+# Toma una muestra aleatoria de los dominios
+domains_sample = domains_df.sample(n=sample_size, random_state=1).reset_index(drop=True)
+
+# Asigna un ID a cada dominio
+domains_sample['id'] = domains_sample.index + 1
+
+# Almacena los dominios en un diccionario para un acceso rápido por ID
+domains_dict = domains_sample.set_index('id')['domain'].to_dict()
+
+# Función para realizar consultas a la API con un dominio aleatorio basado en un ID aleatorio
+def query_random_domain():
+    random_id = random.randint(1, sample_size)
+    domain = domains_dict[random_id]
     try:
-        # Envía la solicitud GET a la API
         response = requests.get(api_url, params={'domain': domain})
         data = response.json()
         print(f"Request to {domain}: {data}")
     except requests.exceptions.RequestException as e:
         print(f"Error requesting {domain}: {e}")
 
-    time.sleep(1)
+# Consulta aleatoria en un bucle infinito con un tiempo de espera ajustable
+while True:
+    query_random_domain()
+    time.sleep(0.1)  # Ajusta el tiempo de espera entre solicitudes si es necesario

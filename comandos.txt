@@ -1,4 +1,4 @@
-docker exec -it 32a0e864f26e redis-cli
+docker exec -it redis-server-1 redis-cli
 docker exec -it 9d19355df76a redis-cli FLUSHALL
 KEYS *
 
@@ -13,6 +13,7 @@ docker exec -it redis-server-1 redis-cli CONFIG SET protected-mode no
 docker exec -it redis-server-2 redis-cli CONFIG SET protected-mode no
 docker exec -it redis-server-3 redis-cli CONFIG SET protected-mode no
 
+docker network connect redisn redis-insight
 docker network connect redisn redis-server-1
 docker network connect redisn redis-server-2
 docker network connect redisn redis-server-3
@@ -21,4 +22,8 @@ ver que esten conectados:
 docker network inspect redisn
 
 Crear el clúster de Redis:
-docker exec -it redis-server-1 redis-cli --cluster create 192.168.16.2:6379 192.168.16.3:6379 192.168.16.4:6379 --cluster-replicas 0
+docker exec -it redis-server-1 redis-cli --cluster create 172.23.0.3:6379 172.23.0.4:6379 172.23.0.5:6379 --cluster-replicas 0
+
+
+
+docker exec -it redis-server-1 redis-cli cluster nodes

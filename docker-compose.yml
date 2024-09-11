@@ -3,64 +3,68 @@ version: '3.8'
 networks:
   redisn:
     driver: bridge
+    name: redisn
 
 services:
   redis1:
     image: bitnami/redis:latest
     restart: always
     container_name: redis-server-1
+    command: >
+      /opt/bitnami/scripts/redis/run.sh --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6379
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "6379:6379"
+      - "16379:16379"
     volumes:
       - redis_data_1:/bitnami/redis/data
-    networks: 
+    networks:
       - redisn
-    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "/bitnami/redis/nodes.conf", "--port", "6379", "--protected-mode", "no"]
 
   redis2:
     image: bitnami/redis:latest
     restart: always
     container_name: redis-server-2
+    command: >
+      /opt/bitnami/scripts/redis/run.sh --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6379
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "6380:6379"
+      - "16380:16379"
     volumes:
       - redis_data_2:/bitnami/redis/data
-    networks: 
+    networks:
       - redisn
-    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "/bitnami/redis/nodes.conf", "--port", "6379", "--protected-mode", "no"]
 
   redis3:
     image: bitnami/redis:latest
     restart: always
     container_name: redis-server-3
+    command: >
+      /opt/bitnami/scripts/redis/run.sh --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6379
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "6381:6379"
+      - "16381:16379"
     volumes:
       - redis_data_3:/bitnami/redis/data
-    networks: 
+    networks:
       - redisn
-    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "/bitnami/redis/nodes.conf", "--port", "6379", "--protected-mode", "no"]
-
-  redisinsight:
-    image: redislabs/redisinsight:latest
-    restart: always
-    container_name: redis-insight
-    volumes: 
-      - redis-insight:/data
-    ports:
-      - "5540:5540" 
-    networks: 
-      - redisn
-    depends_on:
-      - redis1
-      - redis2
-      - redis3
 
   redis-cluster-init:
     image: bitnami/redis:latest
@@ -72,8 +76,23 @@ services:
       - redisn
     entrypoint: [
       "sh", "-c", 
-      "sleep 5 && redis-cli --cluster create 192.168.16.2:6379 192.168.16.3:6379 192.168.16.4:6379 --cluster-replicas 0 --cluster-yes"
+      "sleep 10 && redis-cli --cluster create redis-server-1:6379 redis-server-2:6379 redis-server-3:6379 --cluster-replicas 0 --cluster-yes"
     ]
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    restart: always
+    container_name: redis-insight
+    volumes:
+      - redis-insight:/data
+    ports:
+      - "5540:5540"
+    networks:
+      - redisn
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
 
 volumes:
   redis_data_1:
@@ -83,4 +102,3 @@ volumes:
   redis_data_3:
     driver: local
   redis-insight:
-    driver: local
