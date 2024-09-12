@@ -1,87 +1,56 @@
-from flask import Flask, jsonify, request
-from rediscluster import RedisCluster
+import os
 import subprocess
-import threading
-from werkzeug.serving import make_server
+from flask import Flask, request, jsonify
+from rediscluster import RedisCluster
 
 app = Flask(__name__)
 
-# Función para obtener los nodos de Redis desde los contenedores Docker
 def get_redis_nodes():
-    nodes = []
-    # Nombres de los contenedores Redis, según tu docker-compose
-    redis_containers = ['redis-server-1', 'redis-server-2', 'redis-server-3']
-    
-    for container in redis_containers:
-        try:
-            # Ejecuta el comando docker inspect para obtener la IP del contenedor
-            result = subprocess.run(
-                ['docker', 'inspect', container, '--format', '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            ip = result.stdout.strip()
-            if ip:
-                nodes.append({"host": ip, "port": "6379"})
-        except subprocess.CalledProcessError as e:
-            print(f"Error al obtener IP para {container}: {e}")
-    
-    return nodes
+    # Obtiene los nodos de Redis desde la variable de entorno 'REDIS_NODES'
+    nodes = os.getenv('REDIS_NODES', '').split(',')
+    return [{"host": node.split(':')[0], "port": int(node.split(':')[1])} for node in nodes if node]
 
-# Obtener los nodos de Redis automáticamente
+# Configuración de los nodos Redis usando la función anterior
 startup_nodes = get_redis_nodes()
-print("Nodos detectados:", startup_nodes)  # Verifica los nodos obtenidos
 
-# Conexión al clúster de Redis
-cache = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+# Verificar si los nodos están configurados correctamente
+if not startup_nodes:
+    raise ValueError("No Redis nodes configured. Please check the REDIS_NODES environment variable.")
 
-# Clase para manejar el servidor Flask y permitir su cierre
-class ServerThread(threading.Thread):
-    def __init__(self, app):
-        threading.Thread.__init__(self)
-        self.server = make_server('0.0.0.0', 5001, app)
-        self.ctx = app.app_context()
-        self.ctx.push()
-
-    def run(self):
-        self.server.serve_forever()
-
-    def shutdown(self):
-        self.server.shutdown()
-
-# Función para realizar la consulta DIG sin caché
-def dig_query_no_cache(domain):
-    try:
-        result = subprocess.run(['dig', '+short', domain], capture_output=True, text=True)
-        output = result.stdout.strip()
-        ips = [line for line in output.splitlines() if line]
-        return ips if ips else ["No IP found"]
-    except Exception as e:
-        return [str(e)]
+# Conectar al cluster de Redis usando los nodos configurados
+try:
+    redis_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+    print("Connected to Redis cluster successfully.")
+except Exception as e:
+    print(f"Error connecting to Redis cluster: {e}")
+    raise
 
 @app.route('/dns', methods=['GET'])
-def get_dns():
+def get_dns_record():
     domain = request.args.get('domain')
     if not domain:
-        return jsonify({"error": "Domain is required"}), 400
+        return jsonify({"error": "Domain parameter is missing"}), 400
 
-    # Verifica si el dominio está en el caché
-    cached_result = cache.get(domain)
-    source = "cache" if cached_result else "no cache"
+    try:
+        # Intenta obtener el registro desde el caché Redis
+        result = redis_client.get(domain)
+        if result:
+            return jsonify({"domain": domain, "record": result, "source": "cache"}), 200
 
-    if cached_result:
-        result = cached_result.split(', ')
-    else:
-        result = dig_query_no_cache(domain)
-        cache.set(domain, ', '.join(result))  # Almacena en caché
+        # Si no está en caché, realiza una consulta DNS externa
+        # (este es un ejemplo simple; ajusta según tu lógica)
+        result = f"Queried DNS record for {domain}"
+        redis_client.set(domain, result)
+        return jsonify({"domain": domain, "record": result, "source": "external"}), 200
 
-    return jsonify({
-        "domain": domain,
-        "IP": result,
-        "source": source
-    }), 200 if result else 404
+    except Exception as e:
+        print(f"Error fetching DNS record: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
-if __name__ == '__main__':
-    server = ServerThread(app)
-    server.start()
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "API is running"}), 200
+
+if __name__ == "__main__":
+    # Iniciar la API Flask en el puerto 5001
+    app.run(host="0.0.0.0", port=5001)

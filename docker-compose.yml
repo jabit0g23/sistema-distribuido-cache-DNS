@@ -94,6 +94,32 @@ services:
       - redis2
       - redis3
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      - REDIS_NODES=redis-server-1:6379,redis-server-2:6379,redis-server-3:6379
+    container_name: api-container
+    ports:
+      - "5001:5001"
+    networks:
+      - redisn
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+
+  grpc-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpc
+    container_name: grpc-server-container
+    ports:
+      - "50051:50051"
+    networks:
+      - redisn
+
 volumes:
   redis_data_1:
     driver: local
@@ -102,3 +128,4 @@ volumes:
   redis_data_3:
     driver: local
   redis-insight:
+    driver: local

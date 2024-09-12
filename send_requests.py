@@ -4,8 +4,9 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 
-# Define la URL de la API Flask
-api_url = 'http://localhost:5001/dns'
+# Define la URL de la API Flask, asegurándote de que coincida con el nombre del servicio en Docker Compose
+api_url = "http://localhost:5001/dns"  # Usa localhost si corres localmente
+  # Cambia 'api' por el nombre del servicio que usas en Docker Compose
 
 # Lee las primeras filas para determinar el tamaño del archivo sin cargarlo completamente en memoria
 row_count = sum(1 for row in open('3rd_lev_domains_sample.csv'))  # No restamos porque no hay encabezado
@@ -45,7 +46,7 @@ def main():
     misses_times = []
     response_source = {}
 
-    for _ in range(100):  # Número de solicitudes que deseas realizar
+    for _ in range(10000):  # Número de solicitudes que deseas realizar
         domain = domains_dict[random.randint(0, sample_size - 1)]
         result = query_domain(domain)
 
