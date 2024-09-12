@@ -8,14 +8,18 @@ class DNSService(dns_pb2_grpc.DNSServiceServicer):
     def GetDNS(self, request, context):
         domain = request.domain
         try:
-            # Ejecuta el comando `dig` para consultar el dominio
-            result = subprocess.run(['dig', '+short', domain], capture_output=True, text=True)
+            # Ejecuta el comando `dig` desde la consola de Linux
+            result = subprocess.run(['dig', '+short', domain], capture_output=True, text=True, check=True)
             output = result.stdout.strip()
             ips = [line for line in output.splitlines() if line]
             # Devuelve las IPs encontradas
             return dns_pb2.DNSResponse(ips=ips if ips else ["No IP found"])
+        except subprocess.CalledProcessError as e:
+            # Error al ejecutar el comando `dig`
+            return dns_pb2.DNSResponse(ips=[f"Error: {e}"])
         except Exception as e:
-            return dns_pb2.DNSResponse(ips=[str(e)])
+            # Manejo de cualquier otro error
+            return dns_pb2.DNSResponse(ips=[f"Exception: {str(e)}"])
 
 def serve():
     # Configura el servidor gRPC
