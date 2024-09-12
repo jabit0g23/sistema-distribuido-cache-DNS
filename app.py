@@ -6,24 +6,37 @@ from werkzeug.serving import make_server
 
 app = Flask(__name__)
 
-# Configura la conexión al clúster Redis
-startup_nodes = [
-    {"host": "192.168.0.2", "port": "6379"},
-    {"host": "192.168.0.3", "port": "6379"},
-    {"host": "192.168.0.4", "port": "6379"},
-]
+# Función para obtener los nodos de Redis desde los contenedores Docker
+def get_redis_nodes():
+    nodes = []
+    # Nombres de los contenedores Redis, según tu docker-compose
+    redis_containers = ['redis-server-1', 'redis-server-2', 'redis-server-3']
+    
+    for container in redis_containers:
+        try:
+            # Ejecuta el comando docker inspect para obtener la IP del contenedor
+            result = subprocess.run(
+                ['docker', 'inspect', container, '--format', '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            ip = result.stdout.strip()
+            if ip:
+                nodes.append({"host": ip, "port": "6379"})
+        except subprocess.CalledProcessError as e:
+            print(f"Error al obtener IP para {container}: {e}")
+    
+    return nodes
 
-# Verificar la lista de nodos antes de conectar
+# Obtener los nodos de Redis automáticamente
 startup_nodes = get_redis_nodes()
-print("Nodos detectados:", startup_nodes)
-
+print("Nodos detectados:", startup_nodes)  # Verifica los nodos obtenidos
 
 # Conexión al clúster de Redis
 cache = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 
-# Configuración para alternar entre particionamiento por hash o por rango
-partition_mode = 'hash'  # Cambia a 'range' para particionamiento por rango
-
+# Clase para manejar el servidor Flask y permitir su cierre
 class ServerThread(threading.Thread):
     def __init__(self, app):
         threading.Thread.__init__(self)
