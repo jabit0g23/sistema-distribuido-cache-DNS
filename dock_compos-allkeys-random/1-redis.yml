@@ -1,0 +1,72 @@
+version: '3.8'
+
+networks:
+  redisn:
+    driver: bridge
+    name: redisn
+
+services:
+  redis1:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-1
+    command: >
+      /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
+      --appendonly yes
+      --port 6379
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-random
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+      - "16379:16379"
+    volumes:
+      - redis_data_1:/bitnami/redis/data
+    networks:
+      - redisn
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    restart: always
+    container_name: redis-insight
+    volumes:
+      - redis-insight:/data
+    ports:
+      - "5540:5540"
+    networks:
+      - redisn
+    depends_on:
+      - redis1
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      - REDIS_NODES=redis-server-1:6379
+    container_name: api-container
+    ports:
+      - "5001:5001"
+    networks:
+      - redisn
+    depends_on:
+      - redis1
+
+  grpc-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpc
+    container_name: grpc-server-container
+    ports:
+      - "50051:50051"
+    networks:
+      - redisn
+    dns:
+      - 8.8.8.8 
+
+volumes:
+  redis_data_1:
+    driver: local
+  redis-insight:
+    driver: local
