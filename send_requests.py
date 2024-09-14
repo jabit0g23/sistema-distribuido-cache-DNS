@@ -4,12 +4,11 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 
-# Define la URL de la API Flask, asegurándote de que coincida con el nombre del servicio en Docker Compose
-api_url = "http://localhost:5001/dns"  # Usa localhost si corres localmente
-  # Cambia 'api' por el nombre del servicio que usas en Docker Compose
+# Define la URL de la API Flask
+api_url = "http://localhost:5001/dns"
 
 # Lee las primeras filas para determinar el tamaño del archivo sin cargarlo completamente en memoria
-row_count = sum(1 for row in open('3rd_lev_domains_sample.csv'))  # No restamos porque no hay encabezado
+row_count = sum(1 for row in open('3rd_lev_domains_sample.csv'))
 
 # Ajusta el tamaño de la muestra para que no exceda el número total de filas
 sample_size = min(20000, row_count)
@@ -23,6 +22,9 @@ domains_sample = domains_df.sample(n=sample_size, random_state=1).reset_index(dr
 # Almacena los dominios en un diccionario para un acceso rápido por ID
 domains_dict = domains_sample['domain'].to_dict()
 
+# Diccionario para rastrear las peticiones por nodo
+node_requests = {}
+
 # Función para realizar consultas a la API y medir estadísticas
 def query_domain(domain):
     try:
@@ -32,10 +34,17 @@ def query_domain(domain):
         end_time = time.time()
         data = response.json()
         is_hit = data['source'] == 'cache'
+        
+        # Simulamos la asignación de la petición a un nodo específico (ejemplo)
+        # Nota: En un entorno real, necesitarías obtener esto desde Redis.
+        node = f"Node-{random.randint(1, 3)}"  # Simulación de 3 nodos
+        node_requests[node] = node_requests.get(node, 0) + 1
+        
         return {
             'data': data,
             'time': (end_time - start_time) * 1000,  # Convertimos el tiempo a milisegundos
-            'hit': is_hit
+            'hit': is_hit,
+            'node': node
         }
     except requests.RequestException as e:
         print(f"Error al solicitar {domain}: {e}")
@@ -46,7 +55,7 @@ def main():
     misses_times = []
     response_source = {}
 
-    for _ in range(1000):  # Número de solicitudes que deseas realizar
+    for _ in range(100):  # Número de solicitudes que deseas realizar
         domain = domains_dict[random.randint(0, sample_size - 1)]
         result = query_domain(domain)
 
@@ -64,6 +73,11 @@ def main():
     print(f"Cache hit average time: {sum(hits_times) / len(hits_times) if hits_times else 0:.2f} ms")
     print(f"Cache miss average time: {sum(misses_times) / len(misses_times) if misses_times else 0:.2f} ms")
     print(f"Response sources: {response_source}")
+
+    # Imprimir balance de carga por nodo
+    print("Load balance per partition:")
+    for node, count in node_requests.items():
+        print(f"{node}: {count} requests")
 
     # Graficar los resultados
     plt.figure(figsize=(14, 7))
