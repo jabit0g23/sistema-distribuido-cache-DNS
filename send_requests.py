@@ -36,9 +36,8 @@ def query_domain(domain):
         data = response.json()
         is_hit = data['source'] == 'cache'
         
-        # Simulamos la asignación de la petición a un nodo específico (ejemplo)
-        # Nota: En un entorno real, necesitarías obtener esto desde Redis.
-        node = f"Node-{random.randint(1, 3)}"  # Simulación de 3 nodos
+        # Obtener el nodo real desde la respuesta de la API
+        node = data.get('node', 'Unknown Node')
         node_requests[node] = node_requests.get(node, 0) + 1
         
         return {
@@ -56,7 +55,7 @@ def main():
     misses_times = []
     response_source = {}
 
-    for _ in range(100):  # Número de solicitudes que deseas realizar
+    for _ in range(500):  # Número de solicitudes que deseas realizar
         domain = domains_dict[random.randint(0, sample_size - 1)]
         result = query_domain(domain)
 
@@ -70,9 +69,9 @@ def main():
 
     # Calcular estadísticas para tiempos de respuesta
     hit_avg_time = np.mean(hits_times) if hits_times else 0
-    hit_std_dev = np.std(hits_times) if hits_times else 0
+    hit_std_dev = np.std(hits_times, ddof=1) if hits_times else 0  # Ajuste aquí
     miss_avg_time = np.mean(misses_times) if misses_times else 0
-    miss_std_dev = np.std(misses_times) if misses_times else 0
+    miss_std_dev = np.std(misses_times, ddof=1) if misses_times else 0  # Ajuste aquí
 
     # Imprimir estadísticas
     print(f"Cache hits: {len(hits_times)}")

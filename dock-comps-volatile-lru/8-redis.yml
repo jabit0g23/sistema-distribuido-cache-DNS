@@ -15,7 +15,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -35,7 +35,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -55,7 +55,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -75,7 +75,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -95,7 +95,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -115,7 +115,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -135,7 +135,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -155,7 +155,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 256mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
