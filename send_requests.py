@@ -3,6 +3,7 @@ import random
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Define la URL de la API Flask
 api_url = "http://localhost:5001/dns"
@@ -67,11 +68,17 @@ def main():
             else:
                 misses_times.append(result['time'])
 
+    # Calcular estadísticas para tiempos de respuesta
+    hit_avg_time = np.mean(hits_times) if hits_times else 0
+    hit_std_dev = np.std(hits_times) if hits_times else 0
+    miss_avg_time = np.mean(misses_times) if misses_times else 0
+    miss_std_dev = np.std(misses_times) if misses_times else 0
+
     # Imprimir estadísticas
     print(f"Cache hits: {len(hits_times)}")
     print(f"Cache misses: {len(misses_times)}")
-    print(f"Cache hit average time: {sum(hits_times) / len(hits_times) if hits_times else 0:.2f} ms")
-    print(f"Cache miss average time: {sum(misses_times) / len(misses_times) if misses_times else 0:.2f} ms")
+    print(f"Cache hit average time: {hit_avg_time:.2f} ms")
+    print(f"Cache miss average time: {miss_avg_time:.2f} ms")
     print(f"Response sources: {response_source}")
 
     # Imprimir balance de carga por nodo
@@ -79,33 +86,46 @@ def main():
     for node, count in node_requests.items():
         print(f"{node}: {count} requests")
 
-    # Graficar los resultados
-    plt.figure(figsize=(14, 7))
+    # Graficar resultados con promedios y desviaciones estándar
+    plt.figure(figsize=(10, 6))
 
-    # Gráfico de tiempos de respuesta
-    plt.subplot(3, 1, 1)
-    plt.scatter(range(len(hits_times)), hits_times, color='green', alpha=0.7, label='Cache Hits')
-    plt.scatter(range(len(misses_times)), misses_times, color='red', alpha=0.7, label='Cache Misses')
-    plt.title('Response Times for Cache Hits and Misses')
-    plt.xlabel('Sample Number')
-    plt.ylabel('Response Time (ms)')
-    plt.legend()
+    # Gráfico de barras para tiempos promedio y desviación estándar
+    categories = ['Cache Hits', 'Cache Misses']
+    averages = [hit_avg_time, miss_avg_time]
+    std_devs = [hit_std_dev, miss_std_dev]
+
+    bars = plt.bar(categories, averages, yerr=std_devs, capsize=5, color=['green', 'red'], alpha=0.7)
+    plt.title('Average Response Times with Standard Deviation')
+    plt.xlabel('Response Type')
+    plt.ylabel('Time (ms)')
+
+    # Añadir texto con los valores de promedio y desviación estándar sobre las barras
+    for bar, avg, std in zip(bars, averages, std_devs):
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + std + 10, f'{avg:.2f} ms\n±{std:.2f}', ha='center', va='bottom')
+
+    plt.tight_layout()
+    plt.savefig('average_response_times.png')  # Guardar gráfico
+    print("Gráfico de tiempos de respuesta promedio guardado como 'average_response_times.png'")
 
     # Gráfico de conteo de hits vs misses
-    plt.subplot(3, 1, 2)
+    plt.figure(figsize=(7, 5))
     plt.bar(['Cache Hits', 'Cache Misses'], [len(hits_times), len(misses_times)], color=['green', 'red'])
     plt.title('Number of Cache Hits vs Misses')
     plt.ylabel('Count')
-
-    # Gráfico de fuentes de respuesta
-    plt.subplot(3, 1, 3)
-    plt.bar(response_source.keys(), response_source.values(), color=['green', 'red', 'blue'], alpha=0.7)
-    plt.title('Number of Responses by Source')
-    plt.xlabel('Source')
-    plt.ylabel('Responses')
     plt.tight_layout()
+    plt.savefig('hits_vs_misses.png')  # Guardar gráfico
+    print("Gráfico de hits vs misses guardado como 'hits_vs_misses.png'")
 
-    plt.show()
+    # Gráfico de balance de carga por partición
+    plt.figure(figsize=(10, 6))
+    plt.bar(node_requests.keys(), node_requests.values(), color='blue', alpha=0.7)
+    plt.title('Load Balance per Partition')
+    plt.xlabel('Partition (Node)')
+    plt.ylabel('Number of Requests')
+    plt.tight_layout()
+    plt.savefig('load_balance_per_partition.png')  # Guardar gráfico
+    print("Gráfico de balance de carga por partición guardado como 'load_balance_per_partition.png'")
 
 if __name__ == "__main__":
     main()
