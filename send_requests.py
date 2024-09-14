@@ -46,7 +46,7 @@ def main():
     misses_times = []
     response_source = {}
 
-    for _ in range(10000):  # Número de solicitudes que deseas realizar
+    for _ in range(1000):  # Número de solicitudes que deseas realizar
         domain = domains_dict[random.randint(0, sample_size - 1)]
         result = query_domain(domain)
 

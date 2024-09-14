@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia los archivos de la API al contenedor
 COPY app.py .
+COPY dns_client.py .
+COPY dns_pb2.py .
+COPY dns_pb2_grpc.py .
 
 # Expone el puerto 5001 para la API
 EXPOSE 5001

@@ -1,8 +1,11 @@
-import os
-import subprocess
 from flask import Flask, request, jsonify
 from rediscluster import RedisCluster
+import os
+import grpc
+from dns_pb2_grpc import DNSServiceStub
+from dns_pb2 import DNSRequest
 
+# Inicialización de la aplicación Flask
 app = Flask(__name__)
 
 def get_redis_nodes():
@@ -25,6 +28,19 @@ except Exception as e:
     print(f"Error connecting to Redis cluster: {e}")
     raise
 
+def query_dns_via_grpc(domain):
+    # Conectar al servidor gRPC
+    channel = grpc.insecure_channel('grpc-server:50051')  # Asegúrate de que este host y puerto sean correctos
+    stub = DNSServiceStub(channel)
+    try:
+        # Llama al método GetDNS en el servidor gRPC
+        response = stub.GetDNS(DNSRequest(domain=domain))
+        # Convierte el resultado a una lista directamente
+        return list(response.ips)
+    except grpc.RpcError as e:
+        print(f"gRPC Error: {e}")
+        return ["Error fetching DNS record"]
+
 @app.route('/dns', methods=['GET'])
 def get_dns_record():
     domain = request.args.get('domain')
@@ -37,15 +53,17 @@ def get_dns_record():
         if result:
             return jsonify({"domain": domain, "record": result, "source": "cache"}), 200
 
-        # Si no está en caché, realiza una consulta DNS externa
-        # (este es un ejemplo simple; ajusta según tu lógica)
-        result = f"Queried DNS record for {domain}"
-        redis_client.set(domain, result)
-        return jsonify({"domain": domain, "record": result, "source": "external"}), 200
+        # Si no está en caché, realiza una consulta DNS a través del servidor gRPC
+        print(f"Record not found in cache for {domain}, querying gRPC server...")
+        result = query_dns_via_grpc(domain)  # Llamada al gRPC server
+
+        # Guarda en Redis el resultado serializado
+        redis_client.set(domain, ', '.join(result))
+        return jsonify({"domain": domain, "record": result, "source": "gRPC"}), 200
 
     except Exception as e:
-        print(f"Error fetching DNS record: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        print(f"Error fetching DNS record for {domain}: {e}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():

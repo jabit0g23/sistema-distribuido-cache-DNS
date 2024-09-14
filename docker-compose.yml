@@ -119,6 +119,8 @@ services:
       - "50051:50051"
     networks:
       - redisn
+    dns:
+      - 8.8.8.8 
 
 volumes:
   redis_data_1:

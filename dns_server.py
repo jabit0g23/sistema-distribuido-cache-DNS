@@ -1,3 +1,4 @@
+# dns_server.py
 from concurrent import futures
 import grpc
 import subprocess
@@ -12,7 +13,7 @@ class DNSService(dns_pb2_grpc.DNSServiceServicer):
             result = subprocess.run(['dig', '+short', domain], capture_output=True, text=True, check=True)
             output = result.stdout.strip()
             ips = [line for line in output.splitlines() if line]
-            # Devuelve las IPs encontradas
+            # Devuelve las IPs encontradas como lista
             return dns_pb2.DNSResponse(ips=ips if ips else ["No IP found"])
         except subprocess.CalledProcessError as e:
             # Error al ejecutar el comando `dig`
@@ -22,7 +23,6 @@ class DNSService(dns_pb2_grpc.DNSServiceServicer):
             return dns_pb2.DNSResponse(ips=[f"Exception: {str(e)}"])
 
 def serve():
-    # Configura el servidor gRPC
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     dns_pb2_grpc.add_DNSServiceServicer_to_server(DNSService(), server)
     server.add_insecure_port('[::]:50051')
