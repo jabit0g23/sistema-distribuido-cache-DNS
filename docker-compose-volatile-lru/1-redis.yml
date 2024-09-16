@@ -3,6 +3,7 @@ version: '3.8'
 networks:
   redisn:
     driver: bridge
+    external: true
     name: redisn
 
 services:

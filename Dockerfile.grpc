@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y dnsutils
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install dnspython
 
 # Copia los archivos gRPC al contenedor
 COPY dns_pb2.py dns_pb2_grpc.py dns_server.py dns_client.py /app/

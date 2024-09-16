@@ -3,6 +3,7 @@ version: '3.8'
 networks:
   redisn:
     driver: bridge
+    external: true
     name: redisn
 
 services:
@@ -14,8 +15,8 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
+      --maxmemory 2mb
+      --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -34,8 +35,8 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
+      --maxmemory 2mb
+      --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -54,8 +55,8 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
+      --maxmemory 2mb
+      --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -74,8 +75,8 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
+      --maxmemory 2mb
+      --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -83,86 +84,6 @@ services:
       - "16382:16379"
     volumes:
       - redis_data_4:/bitnami/redis/data
-    networks:
-      - redisn
-
-  redis5:
-    image: bitnami/redis:latest
-    restart: always
-    container_name: redis-server-5
-    command: >
-      /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
-      --appendonly yes
-      --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - "6383:6379"
-      - "16383:16379"
-    volumes:
-      - redis_data_5:/bitnami/redis/data
-    networks:
-      - redisn
-
-  redis6:
-    image: bitnami/redis:latest
-    restart: always
-    container_name: redis-server-6
-    command: >
-      /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
-      --appendonly yes
-      --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - "6384:6379"
-      - "16384:16379"
-    volumes:
-      - redis_data_6:/bitnami/redis/data
-    networks:
-      - redisn
-
-  redis7:
-    image: bitnami/redis:latest
-    restart: always
-    container_name: redis-server-7
-    command: >
-      /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
-      --appendonly yes
-      --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - "6385:6379"
-      - "16385:16379"
-    volumes:
-      - redis_data_7:/bitnami/redis/data
-    networks:
-      - redisn
-
-  redis8:
-    image: bitnami/redis:latest
-    restart: always
-    container_name: redis-server-8
-    command: >
-      /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
-      --appendonly yes
-      --port 6379
-      --maxmemory 1mb
-      --maxmemory-policy volatile-lru
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - "6386:6379"
-      - "16386:16379"
-    volumes:
-      - redis_data_8:/bitnami/redis/data
     networks:
       - redisn
 
@@ -181,17 +102,13 @@ services:
       - redis2
       - redis3
       - redis4
-      - redis5
-      - redis6
-      - redis7
-      - redis8
 
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
     environment:
-      - REDIS_NODES=redis-server-1:6379,redis-server-2:6379,redis-server-3:6379,redis-server-4:6379,redis-server-5:6379,redis-server-6:6379,redis-server-7:6379,redis-server-8:6379
+      - REDIS_NODES=redis-server-1:6379,redis-server-2:6379,redis-server-3:6379,redis-server-4:6379
     container_name: api-container
     ports:
       - "5001:5001"
@@ -202,10 +119,6 @@ services:
       - redis2
       - redis3
       - redis4
-      - redis5
-      - redis6
-      - redis7
-      - redis8
 
   grpc-server:
     build:
@@ -227,14 +140,6 @@ volumes:
   redis_data_3:
     driver: local
   redis_data_4:
-    driver: local
-  redis_data_5:
-    driver: local
-  redis_data_6:
-    driver: local
-  redis_data_7:
-    driver: local
-  redis_data_8:
     driver: local
   redis-insight:
     driver: local

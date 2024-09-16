@@ -8,22 +8,13 @@ import numpy as np
 # Define la URL de la API Flask
 api_url = "http://localhost:5001/dns"
 
-# Lee las primeras filas para determinar el tamaño del archivo sin cargarlo completamente en memoria
+
 row_count = sum(1 for row in open('3rd_lev_domains_sample.csv'))
-
-# Ajusta el tamaño de la muestra para que no exceda el número total de filas
-sample_size = min(20000, row_count)
-
-# Lee una muestra aleatoria de filas desde el archivo CSV sin encabezado y asigna un nombre a la columna
+# Ajusta el tamaño de la muestra
+sample_size = min(500, row_count) #Maximo 50000
 domains_df = pd.read_csv('3rd_lev_domains_sample.csv', header=None, names=['domain'])
-
-# Toma una muestra aleatoria de los dominios
 domains_sample = domains_df.sample(n=sample_size, random_state=1).reset_index(drop=True)
-
-# Almacena los dominios en un diccionario para un acceso rápido por ID
 domains_dict = domains_sample['domain'].to_dict()
-
-# Diccionario para rastrear las peticiones por nodo
 node_requests = {}
 
 # Función para realizar consultas a la API y medir estadísticas
@@ -55,7 +46,7 @@ def main():
     misses_times = []
     response_source = {}
 
-    for _ in range(500):  # Número de solicitudes que deseas realizar
+    for _ in range(100):  # Número de solicitudes que deseas realizar
         domain = domains_dict[random.randint(0, sample_size - 1)]
         result = query_domain(domain)
 
@@ -69,9 +60,9 @@ def main():
 
     # Calcular estadísticas para tiempos de respuesta
     hit_avg_time = np.mean(hits_times) if hits_times else 0
-    hit_std_dev = np.std(hits_times, ddof=1) if hits_times else 0  # Ajuste aquí
+    hit_std_dev = np.std(hits_times, ddof=1) if hits_times else 0  
     miss_avg_time = np.mean(misses_times) if misses_times else 0
-    miss_std_dev = np.std(misses_times, ddof=1) if misses_times else 0  # Ajuste aquí
+    miss_std_dev = np.std(misses_times, ddof=1) if misses_times else 0
 
     # Imprimir estadísticas
     print(f"Cache hits: {len(hits_times)}")

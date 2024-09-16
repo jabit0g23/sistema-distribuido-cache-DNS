@@ -3,6 +3,7 @@ version: '3.8'
 networks:
   redisn:
     driver: bridge
+    external: true
     name: redisn
 
 services:
@@ -15,7 +16,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 4mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -35,7 +36,7 @@ services:
       --appendonly yes
       --port 6379
       --maxmemory 4mb
-      --maxmemory-policy allkeys-random
+      --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
