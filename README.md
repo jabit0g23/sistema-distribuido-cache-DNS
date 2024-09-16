@@ -3,6 +3,8 @@
 
 Este proyecto implementa un sistema distribuido de caché para solicitudes DNS, utilizando Redis y particionamiento distribuido. Siga los pasos a continuación para clonar, configurar y ejecutar el programa.
 
+**[Ver video de implementación]()**
+
 ## Instalación y Configuración
 
 ### 1. Clonar el Repositorio
