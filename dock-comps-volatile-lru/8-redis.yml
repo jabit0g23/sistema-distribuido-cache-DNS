@@ -14,7 +14,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -34,7 +34,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -54,7 +54,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -74,7 +74,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -94,7 +94,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -114,7 +114,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -134,7 +134,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -154,7 +154,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 1mb
       --maxmemory-policy volatile-lru
     environment:
       - ALLOW_EMPTY_PASSWORD=yes

@@ -14,7 +14,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 2mb
       --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -34,7 +34,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 2mb
       --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -54,7 +54,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 2mb
       --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
@@ -74,7 +74,7 @@ services:
       /opt/bitnami/scripts/redis/run.sh --cluster-enabled no
       --appendonly yes
       --port 6379
-      --maxmemory 256mb
+      --maxmemory 2mb
       --maxmemory-policy allkeys-random
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
